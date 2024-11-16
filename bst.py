@@ -154,9 +154,32 @@ class BST:
 
     def add(self, value: object) -> None:
         """
-        TODO: Write your implementation
+        Adds a new value to the tree iteratively. Duplicate values are allowed.
+        If a node with that value already exists, the new value is added
+        to the right subtree of that node.
         """
-        pass
+        new_node = BSTNode(value)
+
+        # If the tree is empty, initialize the root
+        if not self._root:
+            self._root = new_node
+            return
+
+        # Start traversal from the root
+        current = self._root
+        while True:
+            if value < current.value:
+                # Move to the left subtree
+                if current.left is None:
+                    current.left = new_node
+                    return
+                current = current.left
+            else:
+                # Move to the right subtree (duplicates go to the right)
+                if current.right is None:
+                    current.right = new_node
+                    return
+                current = current.right
 
     def remove(self, value: object) -> bool:
         """
