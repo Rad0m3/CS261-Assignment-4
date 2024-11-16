@@ -1,9 +1,9 @@
-# Name:
-# OSU Email:
+# Name:John Fletcher
+# OSU Email: fletjohn@oregonstate.edu
 # Course: CS261 - Data Structures
-# Assignment:
-# Due Date:
-# Description:
+# Assignment: Assignment 4
+# Due Date: 11/12/2024
+# Description: Implementation of binary search tree class
 
 
 import random
@@ -183,9 +183,62 @@ class BST:
 
     def remove(self, value: object) -> bool:
         """
-        TODO: Write your implementation
+        Removes a node with the given value from the tree.
+        Returns True if the node is removed, False otherwise.
         """
-        pass
+        parent = None
+        current = self._root
+
+        # Find the node to be removed and its parent
+        while current and current.value != value:
+            parent = current
+            if value < current.value:
+                current = current.left
+            else:
+                current = current.right
+
+        # If the node was not found, return False
+        if current is None:
+            return False
+
+        # Case 1: Node to be removed has no children (leaf node)
+        if current.left is None and current.right is None:
+            if parent is None:  # The tree only has one node
+                self._root = None
+            elif parent.left == current:
+                parent.left = None
+            else:
+                parent.right = None
+
+        # Case 2: Node to be removed has one child
+        elif current.left is None or current.right is None:
+            child = current.left if current.left else current.right
+            if parent is None:  # The root is being removed
+                self._root = child
+            elif parent.left == current:
+                parent.left = child
+            else:
+                parent.right = child
+
+        # Case 3: Node to be removed has two children
+        else:
+            # Find the in-order successor (smallest node in the right subtree)
+            successor_parent = current
+            successor = current.right
+            while successor.left:
+                successor_parent = successor
+                successor = successor.left
+
+            # Replace current's value with the successor's value
+            current.value = successor.value
+
+            # Remove the successor
+            if successor_parent.left == successor:
+                successor_parent.left = successor.right
+            else:
+                successor_parent.right = successor.right
+
+        return True
 
     # Consider implementing methods that handle different removal scenarios; #
     # you may find that you're able to use some of them in the AVL.          #

@@ -1,9 +1,9 @@
-# Name:
-# OSU Email:
+# Name:John Fletcher
+# OSU Email: fletjohn@oregonstate.edu
 # Course: CS261 - Data Structures
-# Assignment:
-# Due Date:
-# Description:
+# Assignment: Assignment 4
+# Due Date: 11/12/2024
+# Description: Implementation of binary search tree class
 
 
 import random
