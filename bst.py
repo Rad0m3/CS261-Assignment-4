@@ -248,61 +248,159 @@ class BST:
 
     def _remove_no_subtrees(self, remove_parent: BSTNode, remove_node: BSTNode) -> None:
         """
-        TODO: Write your implementation
+        Removes a node that has no subtrees (a leaf node).
+        Updates the parent's pointer to remove the node.
         """
-        # remove node that has no subtrees (no left or right nodes)
-        pass
+        # If the node to be removed is the root (no parent), set the tree's root to None
+        if remove_parent is None:
+            self._root = None
+            return
+
+        # Update the parent's pointer to None
+        if remove_parent.left == remove_node:
+            remove_parent.left = None
+        elif remove_parent.right == remove_node:
+            remove_parent.right = None
 
     def _remove_one_subtree(self, remove_parent: BSTNode, remove_node: BSTNode) -> None:
         """
-        TODO: Write your implementation
+        Removes a node that has exactly one subtree (either left or right).
+        Updates the parent's pointer to bypass the node.
         """
-        # remove node that has a left or right subtree (only)
-        pass
+        # Determine the child of the node to be removed
+        child = remove_node.left if remove_node.left else remove_node.right
+
+        # If the node to be removed is the root (no parent), update the root
+        if remove_parent is None:
+            self._root = child
+            return
+
+        # Update the parent's pointer to bypass the remove_node
+        if remove_parent.left == remove_node:
+            remove_parent.left = child
+        elif remove_parent.right == remove_node:
+            remove_parent.right = child
 
     def _remove_two_subtrees(self, remove_parent: BSTNode, remove_node: BSTNode) -> None:
         """
-        TODO: Write your implementation
+        Removes a node that has two subtrees.
+        Replaces the node's value with its in-order successor and removes the successor.
         """
-        # remove node that has two subtrees
-        # need to find inorder successor and its parent (make a method!)
-        pass
+        # Find in-order successor and its parent
+        successor_parent, successor = self._find_inorder_successor(remove_node)
+
+        # Replace the value of the node to be removed with the successor's value
+        remove_node.value = successor.value
+
+        # Remove the in-order successor (it will have at most one subtree)
+        if successor.left or successor.right:
+            self._remove_one_subtree(successor_parent, successor)
+        else:
+            self._remove_no_subtrees(successor_parent, successor)
 
     def contains(self, value: object) -> bool:
         """
-        TODO: Write your implementation
+        Checks if a value is present in the tree.
+        Returns True if the value is found, otherwise False.
         """
-        pass
+        # Start from the root
+        current = self._root
+
+        # Traverse the tree iteratively
+        while current:
+            if value == current.value:
+                return True  # Found the value
+            elif value < current.value:
+                current = current.left  # Go to the left subtree
+            else:
+                current = current.right  # Go to the right subtree
+
+        # Value not found
+        return False
 
     def inorder_traversal(self) -> Queue:
         """
-        TODO: Write your implementation
+        Performs an in-order traversal of the tree and returns a Queue
+        containing the values of the visited nodes in order.
         """
-        pass
+        # Initialize an empty queue to store traversal result
+        result_queue = Queue()
+
+        # Helper function to perform recursive in-order traversal
+        def _inorder(node: BSTNode):
+            if node is None:
+                return
+            _inorder(node.left)  # Visit left subtree
+            result_queue.enqueue(node.value)  # Visit current node
+            _inorder(node.right)  # Visit right subtree
+
+        # Start traversal from the root
+        _inorder(self._root)
+        return result_queue
 
     def find_min(self) -> object:
         """
-        TODO: Write your implementation
+        Finds and returns the lowest value in the tree.
+        If the tree is empty, returns None.
         """
-        pass
+        # If the tree is empty, return None
+        if self._root is None:
+            return None
+
+        # Traverse to the leftmost node
+        current = self._root
+        while current.left is not None:
+            current = current.left
+
+        # The value of the leftmost node is the minimum
+        return current.value
 
     def find_max(self) -> object:
         """
-        TODO: Write your implementation
+        Finds and returns the highest value in the tree.
+        If the tree is empty, returns None.
         """
-        pass
+        # If the tree is empty, return None
+        if self._root is None:
+            return None
+
+        # Initialize the variable to hold the current node (start with root)
+        current = self._root
+        max_value = current.value  # Start with the root value
+
+        # Traverse the tree to find the highest value
+        # We do an in-order traversal since we're interested in visiting all nodes
+        stack = []
+        while stack or current:
+            # Traverse to the leftmost node
+            while current:
+                stack.append(current)
+                current = current.left
+
+            # Pop the node from the stack
+            current = stack.pop()
+
+            # Update max_value if the current node's value is greater
+            max_value = max(max_value, current.value)
+
+            # Move to the right subtree
+            current = current.right
+
+        return max_value
 
     def is_empty(self) -> bool:
         """
-        TODO: Write your implementation
+        Returns True if the tree is empty, otherwise False.
+        This method must run in O(1) time complexity.
         """
-        pass
+        return self._root is None
 
     def make_empty(self) -> None:
         """
-        TODO: Write your implementation
+        Removes all nodes from the tree by setting the root to None.
+        This method must run in O(1) time complexity.
         """
-        pass
+        self._root = None
 
 
 # ------------------- BASIC TESTING -----------------------------------------
