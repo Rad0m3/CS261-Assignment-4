@@ -101,15 +101,108 @@ class AVL(BST):
 
     def add(self, value: object) -> None:
         """
-        TODO: Write your implementation
+        Add a new value to the AVL tree while maintaining balance.
+        Duplicate values are not allowed. Iterative implementation using Stack.
         """
-        pass
+        if not self._root:
+            # If the tree is empty, create the root node
+            self._root = AVLNode(value)
+            return
+
+        current = self._root
+        stack = Stack()  # Use Stack to track the path to the insertion point
+
+        # Find the correct position for the new value
+        while current:
+            stack.push(current)
+            if value < current.value:
+                if not current.left:
+                    # Insert as left child
+                    current.left = AVLNode(value)
+                    current.left.parent = current
+                    stack.push(current.left)
+                    break
+                current = current.left
+            elif value > current.value:
+                if not current.right:
+                    # Insert as right child
+                    current.right = AVLNode(value)
+                    current.right.parent = current
+                    stack.push(current.right)
+                    break
+                current = current.right
+            else:
+                # Value already exists, do nothing
+                return
+
+        # Update height and rebalance the tree from the inserted node back to the root
+        while not stack.is_empty():
+            node = stack.pop()
+            self._update_height(node)
+            balanced_node = self._rebalance(node)
+
+            if not stack.is_empty():
+                # Update the parent pointers
+                parent = stack.top()
+                if parent.left == node:
+                    parent.left = balanced_node
+                elif parent.right == node:
+                    parent.right = balanced_node
+            else:
+                # If no parent, this is the root
+                self._root = balanced_node
 
     def remove(self, value: object) -> bool:
         """
-        TODO: Write your implementation
+        Removes the value from the AVL tree while maintaining its AVL properties.
+        Returns True if the value is removed, False if not found.
         """
-        pass
+        node = self._find(value)  # Find the node to be removed
+
+        if node is None:
+            return False  # Value not found in tree
+
+        # Case 1: Node with only one child or no child
+        if node.left is None or node.right is None:
+            # Directly replace the node with its non-null child, if it has one
+            self._replace_node(node)
+
+        # Case 2: Node with two children
+        else:
+            # Find the in-order successor (the leftmost node of the right subtree)
+            successor = self._find_min(node.right)
+            node.value = successor.value  # Replace node value with successor value
+            self._replace_node(successor)  # Remove the successor node
+
+        # Rebalance the tree starting from the parent of the removed node
+        current = node.parent
+        while current:
+            self._update_height(current)  # Update the height of the current node
+            self._rebalance(current)  # Rebalance the tree if necessary
+            current = current.parent  # Move up to the parent node
+
+        return True
+
+    def _replace_node(self, node: AVLNode) -> None:
+        """Replace the given node with its child (if any)."""
+        # If the node has a child, replace it with the non-null child
+        if node.left:
+            self._replace_parent_child(node, node.left)
+        else:
+            self._replace_parent_child(node, node.right)
+
+    def _replace_parent_child(self, node: AVLNode, child: AVLNode) -> None:
+        """Replace node with its child (either left or right)."""
+        if node.parent:
+            if node.parent.left == node:
+                node.parent.left = child
+            else:
+                node.parent.right = child
+        else:
+            self._root = child  # If node is root, update root pointer
+
+        if child:
+            child.parent = node.parent  # Update the parent pointer of the child
 
     # Experiment and see if you can use the optional                         #
     # subtree removal methods defined in the BST here in the AVL.            #
@@ -133,9 +226,11 @@ class AVL(BST):
 
     def _balance_factor(self, node: AVLNode) -> int:
         """
-        TODO: Write your implementation
+        Calculate the balance factor of the given node.
         """
-        pass
+        left_height = node.left.height if node.left else -1
+        right_height = node.right.height if node.right else -1
+        return left_height - right_height
 
     def _get_height(self, node: AVLNode) -> int:
         """
@@ -144,28 +239,68 @@ class AVL(BST):
         pass
 
     def _rotate_left(self, node: AVLNode) -> AVLNode:
-        """
-        TODO: Write your implementation
-        """
-        pass
+        new_root = node.right
+        node.right = new_root.left
+        if new_root.left:
+            new_root.left.parent = node
+        new_root.left = node
+
+        new_root.parent = node.parent
+        if node.parent:
+            if node.parent.left == node:
+                node.parent.left = new_root
+            else:
+                node.parent.right = new_root
+        else:
+            self._root = new_root
+
+        node.parent = new_root
+        self._update_height(node)
+        self._update_height(new_root)
+        return new_root
 
     def _rotate_right(self, node: AVLNode) -> AVLNode:
         """
-        TODO: Write your implementation
+        Perform a right rotation on the subtree rooted at the given node.
         """
-        pass
+        new_root = node.left
+        node.left = new_root.right
+        if new_root.right:
+            new_root.right.parent = node
+        new_root.right = node
+
+        # Update parent pointers
+        new_root.parent = node.parent
+        node.parent = new_root
+
+        # Update heights
+        self._update_height(node)
+        self._update_height(new_root)
+
+        return new_root
 
     def _update_height(self, node: AVLNode) -> None:
-        """
-        TODO: Write your implementation
-        """
-        pass
+        left_height = node.left.height if node.left else -1
+        right_height = node.right.height if node.right else -1
+        node.height = 1 + max(left_height, right_height)
 
-    def _rebalance(self, node: AVLNode) -> None:
-        """
-        TODO: Write your implementation
-        """
-        pass
+    def _rebalance(self, node: AVLNode) -> AVLNode:
+        balance = self._balance_factor(node)
+
+        # Left-heavy case
+        if balance > 1:
+            if self._balance_factor(node.left) < 0:  # Left-Right case
+                node.left = self._rotate_left(node.left)  # Rotate left on the left child
+            return self._rotate_right(node)  # Rotate right on the node
+
+        # Right-heavy case
+        if balance < -1:
+            if self._balance_factor(node.right) > 0:  # Right-Left case
+                node.right = self._rotate_right(node.right)  # Rotate right on the right child
+            return self._rotate_left(node)  # Rotate left on the node
+
+        return node  # Balanced, no rotation needed
+
 
 # ------------------- BASIC TESTING -----------------------------------------
 
