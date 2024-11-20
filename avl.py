@@ -8,8 +8,6 @@
 
 import random
 
-from numpy.ma.core import left_shift
-
 from queue_and_stack import Queue, Stack
 from bst import BSTNode, BST
 
