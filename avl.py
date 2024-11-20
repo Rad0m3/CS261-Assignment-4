@@ -7,6 +7,9 @@
 
 
 import random
+
+from numpy.ma.core import left_shift
+
 from queue_and_stack import Queue, Stack
 from bst import BSTNode, BST
 
@@ -251,6 +254,8 @@ class AVL(BST):
                 parent = node.parent  # You'll need a method to track the parent
                 node = parent
 
+        self._rebalance(node)
+
         print(self.is_valid_avl())
 
         return True
@@ -318,11 +323,24 @@ class AVL(BST):
     # Change these methods in any way you'd like.                   #
 
     def _balance_factor(self, node: AVLNode) -> int:
-        """
-        Calculate the balance factor of the given node.
-        """
+        # Safely get the height of the left child
+        if node is None:
+            return 0  # A None node is considered balanced with no height.
+        left_height = 0
+        right_height = 0
+
+        if node.left is None:
+            left_height = -1
+
+        if node.right is None:
+            right_height = -1
+
         left_height = node.left.height if node.left else -1
+
+        # Safely get the height of the right child
         right_height = node.right.height if node.right else -1
+
+        # Return the balance factor (difference between left and right subtree heights)
         return left_height - right_height
 
     def _get_height(self, node: AVLNode) -> int:
