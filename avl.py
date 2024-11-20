@@ -153,33 +153,58 @@ class AVL(BST):
                 self._root = balanced_node
 
     def remove(self, value: object) -> bool:
-        """
-        Removes the value from the AVL tree while maintaining its AVL properties.
-        Returns True if the value is removed, False if not found.
-        """
-        node = self._find(value)  # Find the node to be removed
 
-        if node is None:
-            return False  # Value not found in tree
+        node = self._find(value)
+        if not node:
+            return False  # Node not found
 
-        # Case 1: Node with only one child or no child
-        if node.left is None or node.right is None:
-            # Directly replace the node with its non-null child, if it has one
-            self._replace_node(node)
+            # Step 2: Case 1 - Node has no children (leaf node)
+        if not node.left and not node.right:
+            if node == self._root:
+                self._root = None  # Tree is empty after removal
+            else:
+                 # Adjust parent pointer of the parent node
+                if node.parent.left == node:
+                    node.parent.left = None
+                else:
+                    node.parent.right = None
+            self._rebalance(node.parent)  # Rebalance the tree up to the root
+            return True
 
-        # Case 2: Node with two children
+        # Step 3: Case 2 - Node has one child
+        if not node.left or not node.right:
+            # Find the only child
+            child = node.left if node.left else node.right
+
+            if node == self._root:
+                self._root = child  # New root
+            else:
+                # Replace node with its child
+                if node.parent.left == node:
+                    node.parent.left = child
+                else:
+                    node.parent.right = child
+                child.parent = node.parent  # Update parent pointer of the child
+
+            self._rebalance(node.parent)  # Rebalance the tree up to the root
+            return True
+
+        # Step 4: Case 3 - Node has two children
+        # Find the inorder successor (leftmost node in the right subtree)
+        successor = self.find_min(node.right)
+
+        # Copy successor's value to the current node
+        node.value = successor.value
+
+            # Remove the successor (it has at most one child)
+        if successor.right:
+            successor.right.parent = successor.parent
+        if successor.parent.left == successor:
+            successor.parent.left = successor.right
         else:
-            # Find the in-order successor (the leftmost node of the right subtree)
-            successor = self._find_min(node.right)
-            node.value = successor.value  # Replace node value with successor value
-            self._replace_node(successor)  # Remove the successor node
+            successor.parent.right = successor.right
 
-        # Rebalance the tree starting from the parent of the removed node
-        current = node.parent
-        while current:
-            self._update_height(current)  # Update the height of the current node
-            self._rebalance(current)  # Rebalance the tree if necessary
-            current = current.parent  # Move up to the parent node
+        self._rebalance(successor.parent)  # Rebalance the tree up to the root
 
         return True
 
@@ -217,6 +242,20 @@ class AVL(BST):
         TODO: Write your implementation
         """
         pass
+
+    def _find(self, value: object) -> AVLNode:
+        """
+        Find and return the node with the given value in the AVL tree.
+        """
+        current = self._root
+        while current:
+            if value < current.value:
+                current = current.left
+            elif value > current.value:
+                current = current.right
+            else:
+                return current  # Found the node
+        return None  # Node not found
 
     # It's highly recommended to implement                          #
     # the following methods for balancing the AVL Tree.             #
@@ -300,6 +339,17 @@ class AVL(BST):
             return self._rotate_left(node)  # Rotate left on the node
 
         return node  # Balanced, no rotation needed
+
+    def find_min(self, node: AVLNode) -> AVLNode:
+        """
+        Returns the node with the minimum value in the given subtree.
+        """
+        current = node
+        while current.left:
+            current = current.left  # Move to the leftmost node
+        return current
+
+
 
 
 # ------------------- BASIC TESTING -----------------------------------------
