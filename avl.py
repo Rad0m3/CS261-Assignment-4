@@ -474,14 +474,14 @@ if __name__ == '__main__':
 
     print("\nPDF - method add() example 3")
     print("----------------------------")
-       # for _ in range(100):
-       #     case = list(set(random.randrange(1, 20000) for _ in range(900)))
-       #     tree = AVL()
-        #    for value in case:
-        #        tree.add(value)
-       #     if not tree.is_valid_avl():
-        #        raise Exception("PROBLEM WITH ADD OPERATION")
-       # print('add() stress test finished')
+    for _ in range(100):
+       case = list(set(random.randrange(1, 20000) for _ in range(900)))
+       tree = AVL()
+    for value in case:
+        tree.add(value)
+        if not tree.is_valid_avl():
+            raise Exception("PROBLEM WITH ADD OPERATION")
+    print('add() stress test finished')
 
     print("\nPDF - method remove() example 1")
     print("-------------------------------")
@@ -538,14 +538,14 @@ if __name__ == '__main__':
 
     print("\nPDF - method remove() example 5")
     print("-------------------------------")
-        #for _ in range(100):
-        #    case = list(set(random.randrange(1, 20000) for _ in range(900)))
-        #    tree = AVL(case)
-        #    for value in case[::2]:
-         #       tree.remove(value)
-        #    if not tree.is_valid_avl():
-        #        raise Exception("PROBLEM WITH REMOVE OPERATION")
-       # print('remove() stress test finished')
+    for _ in range(100):
+        ase = list(set(random.randrange(1, 20000) for _ in range(900)))
+        tree = AVL(case)
+        for value in case[::2]:
+            tree.remove(value)
+        if not tree.is_valid_avl():
+            raise Exception("PROBLEM WITH REMOVE OPERATION")
+    print('remove() stress test finished')
 
     print("\nPDF - method contains() example 1")
     print("---------------------------------")
