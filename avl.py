@@ -153,60 +153,105 @@ class AVL(BST):
                 self._root = balanced_node
 
     def remove(self, value: object) -> bool:
+        """
+        Removes a node with the given value from the AVL tree.
+        Returns True if the node is removed, False otherwise.
+        """
+        parent = None
+        current = self._root
 
-        node = self._find(value)
-        if not node:
-            return False  # Node not found
-
-            # Step 2: Case 1 - Node has no children (leaf node)
-        if not node.left and not node.right:
-            if node == self._root:
-                self._root = None  # Tree is empty after removal
+        # Step 1: Find the node to be removed and its parent
+        while current and current.value != value:
+            parent = current
+            if value < current.value:
+                current = current.left
             else:
-                 # Adjust parent pointer of the parent node
-                if node.parent.left == node:
-                    node.parent.left = None
-                else:
-                    node.parent.right = None
-            self._rebalance(node.parent)  # Rebalance the tree up to the root
-            return True
+                current = current.right
 
-        # Step 3: Case 2 - Node has one child
-        if not node.left or not node.right:
-            # Find the only child
-            child = node.left if node.left else node.right
+        # If the node was not found, return False
+        if current is None:
+            return False
 
-            if node == self._root:
-                self._root = child  # New root
+        # Step 2: Remove the node (same as in the BST deletion)
+        # Case 1: Node to be removed has no children (leaf node)
+        if current.left is None and current.right is None:
+            if parent is None:  # The tree only has one node
+                self._root = None
+            elif parent.left == current:
+                parent.left = None
             else:
-                # Replace node with its child
-                if node.parent.left == node:
-                    node.parent.left = child
-                else:
-                    node.parent.right = child
-                child.parent = node.parent  # Update parent pointer of the child
+                parent.right = None
 
-            self._rebalance(node.parent)  # Rebalance the tree up to the root
-            return True
+        # Case 2: Node to be removed has one child
+        elif current.left is None or current.right is None:
+            child = current.left if current.left else current.right
+            if parent is None:  # The root is being removed
+                self._root = child
+            elif parent.left == current:
+                parent.left = child
+            else:
+                parent.right = child
 
-        # Step 4: Case 3 - Node has two children
-        # Find the inorder successor (leftmost node in the right subtree)
-        successor = self.find_min(node.right)
-
-        # Copy successor's value to the current node
-        node.value = successor.value
-
-            # Remove the successor (it has at most one child)
-        if successor.right:
-            successor.right.parent = successor.parent
-        if successor.parent.left == successor:
-            successor.parent.left = successor.right
+        # Case 3: Node to be removed has two children
         else:
-            successor.parent.right = successor.right
+            # Find the in-order successor (smallest node in the right subtree)
+            successor_parent = current
+            successor = current.right
+            while successor.left:
+                successor_parent = successor
+                successor = successor.left
 
-        self._rebalance(successor.parent)  # Rebalance the tree up to the root
+            # Replace current's value with the successor's value
+            current.value = successor.value
+
+            # Remove the successor
+            if successor_parent.left == successor:
+                successor_parent.left = successor.right
+            else:
+                successor_parent.right = successor.right
+
+        # Step 3: Rebalance the tree starting from the parent of the deleted node
+        # We will start from the parent and propagate upwards to the root
+        node = parent if parent else current  # Start rebalancing from the parent or current node
+        while node:
+            # Update the height of the current node
+            node.height = max(self._get_height(node.left), self._get_height(node.right)) + 1
+
+            # Get the balance factor of the current node
+            balance = self._balance_factor(node)
+
+            # If the node becomes unbalanced, apply rotations
+            # Left Left Case
+            if balance > 1 and self._balance_factor(node.left) >= 0:
+                node = self._rotate_right(node)
+
+            # Left Right Case
+            elif balance > 1 and self._balance_factor(node.left) < 0:
+                node.left = self._rotate_left(node.left)
+                node = self._rotate_right(node)
+
+            # Right Right Case
+            elif balance < -1 and self._balance_factor(node.right) <= 0:
+                node = self._rotate_left(node)
+
+            # Right Left Case
+            elif balance < -1 and self._balance_factor(node.right) > 0:
+                node.right = self._rotate_right(node.right)
+                node = self._rotate_left(node)
+
+            # Move up to the parent node for the next iteration
+            # If the current node is the root, we stop
+            if node == self._root:
+                break
+            else:
+                # The parent is tracked by our loop through the binary tree
+                parent = node.parent  # You'll need a method to track the parent
+                node = parent
 
         return True
+
+
+
 
     def _replace_node(self, node: AVLNode) -> None:
         """Replace the given node with its child (if any)."""
@@ -273,9 +318,12 @@ class AVL(BST):
 
     def _get_height(self, node: AVLNode) -> int:
         """
-        TODO: Write your implementation
+        Returns the height of the given node.
+        If the node is None, returns -1, as an empty subtree has a height of -1.
         """
-        pass
+        if node is None:
+            return -1  # An empty subtree has a height of -1.
+        return node.height  # Return the stored height of the node.
 
     def _rotate_left(self, node: AVLNode) -> AVLNode:
         new_root = node.right
@@ -328,14 +376,18 @@ class AVL(BST):
 
         # Left-heavy case
         if balance > 1:
-            if self._balance_factor(node.left) < 0:  # Left-Right case
+            # Left-Right case (double rotation)
+            if self._balance_factor(node.left) < 0:
                 node.left = self._rotate_left(node.left)  # Rotate left on the left child
+            # Left-Left case (single rotation)
             return self._rotate_right(node)  # Rotate right on the node
 
         # Right-heavy case
         if balance < -1:
-            if self._balance_factor(node.right) > 0:  # Right-Left case
+            # Right-Left case (double rotation)
+            if self._balance_factor(node.right) > 0:
                 node.right = self._rotate_right(node.right)  # Rotate right on the right child
+            # Right-Right case (single rotation)
             return self._rotate_left(node)  # Rotate left on the node
 
         return node  # Balanced, no rotation needed
